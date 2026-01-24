@@ -25,17 +25,20 @@ from llm4ad.base import LLM
 
 
 class OpenAIAPI(LLM):
-    def __init__(self, base_url: str, api_key: str, model: str, timeout=60, **kwargs):
+    def __init__(self, base_url: str, api_key: str, model: str, sys_prompt: str, timeout=60, **kwargs):
         super().__init__()
         self._model = model
         self._client = openai.OpenAI(api_key=api_key, base_url=base_url, timeout=timeout, **kwargs)
+        self.sys_prompt = sys_prompt.strip()
 
     def draw_sample(self, prompt: str | Any, *args, **kwargs) -> str:
-        if isinstance(prompt, str):
-            prompt = [{'role': 'user', 'content': prompt.strip()}]
+        messages = [
+            {"role": "system", "content": self.sys_prompt},
+            {"role": "user", "content": prompt.strip()},
+        ]
         response = self._client.chat.completions.create(
             model=self._model,
-            messages=prompt,
+            messages=messages,
             stream=False,
         )
         return response.choices[0].message.content

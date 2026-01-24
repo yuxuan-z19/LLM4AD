@@ -134,6 +134,8 @@ class ProfilerBase:
             'function': str(function),
             'score': function.score,
             'program': program,
+            'generation': function.generation,
+            'prompt': function.prompt,
         }
 
         if record_type == 'history':

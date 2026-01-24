@@ -4,16 +4,16 @@ import json
 import os
 from abc import ABC, abstractmethod
 from threading import Lock
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 try:
     import wandb
 except:
     pass
 
+from ...tools.profiler import ProfilerBase, TensorboardProfiler, WandBProfiler
 from .elite_set import EliteSet
 from .func_ruin import LHNSFunction
-from ...tools.profiler import TensorboardProfiler, ProfilerBase, WandBProfiler
 
 
 class LHNSProfiler(ProfilerBase):
@@ -48,7 +48,7 @@ class LHNSProfiler(ProfilerBase):
             self._ckpt_dir = os.path.join(self._log_dir, 'population')
             os.makedirs(self._ckpt_dir, exist_ok=True)
 
-    def _write_json(self, function: LHNSFunction, *, record_type='history', record_sep=200):
+    def _write_json(self, function: LHNSFunction, program='', *, record_type='history', record_sep=200):
         """Write function data to a JSON file.
         Args:
             function   : The function object containing score and string representation.
@@ -66,7 +66,10 @@ class LHNSProfiler(ProfilerBase):
             'algorithm': function.algorithm,  # Added when recording
             'function': str(function),
             'features': function.features,
-            'score': function.score
+            'score': function.score,
+            'program': program,
+            'generation': getattr(function, "generation"),
+            'prompt': getattr(function, "prompt"),
         }
 
         if record_type == 'history':

@@ -190,6 +190,9 @@ class MCTS_AHD:
         func.evaluate_time = eval_time
         func.algorithm = thought
         func.sample_time = sample_time
+        func.generation = self._population.generation
+        func.prompt = prompt
+
         if self._profiler is not None:
             self._profiler.register_function(func, program=str(program))
             if isinstance(self._profiler, MAProfiler):

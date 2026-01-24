@@ -23,13 +23,13 @@ class LHNSPrompt:
     def get_prompt_i1(cls, task_prompt: str, template_function: LHNSFunction):
         # template
         temp_func = copy.deepcopy(template_function)
-        temp_func.body = ''
+        # temp_func.body = ''
         # create prompt content
         prompt_content = f'''{task_prompt}
 1. First, describe your new algorithm and main steps in one sentence. The description must be inside within boxed {{}}. 
 2. Next, implement the following Python function:
 {str(temp_func)}
-Import statements should be placed outside the function. Do not give additional explanations.'''
+Do not give additional explanations.'''
         return prompt_content
 
     @classmethod
@@ -39,7 +39,7 @@ Import statements should be placed outside the function. Do not give additional 
         indi = LHNSFunctionRuin.merge_features(indi, prev_indi.features)
         # template
         temp_func = copy.deepcopy(template_function)
-        temp_func.body = ''
+        # temp_func.body = ''
         # create prompt content for all individuals
         indivs_prompt = ''
         indi.docstring = ''
@@ -53,7 +53,7 @@ Please review the given code, integrating two algorithm descriptions provided to
 1. First, describe your new algorithm and main steps in one sentence. The description must be inside within boxed {{}}.
 2. Next, implement the following Python function:
 {str(temp_func)}
-Import statements should be placed outside the function. Do not give additional explanations.'''
+Do not give additional explanations.'''
         return prompt_content
 
     @classmethod
@@ -62,7 +62,7 @@ Import statements should be placed outside the function. Do not give additional 
         indi, number_of_delete = LHNSFunctionRuin.delete_function_snips(indi, cooling_rate)
         # template
         temp_func = copy.deepcopy(template_function)
-        temp_func.body = ''
+        # temp_func.body = ''
 
         # create prmpt content
         prompt_content = f'''{task_prompt}
@@ -75,7 +75,7 @@ Please review the code, revise and explore more lines to improve the algorithm.
 1. First, describe your new algorithm and main steps in one sentence. The description must be inside within boxed {{}}.
 2. Next, implement the following Python function:
 {str(temp_func)}
-Import statements should be placed outside the function. Do not give additional explanations.'''
+Do not give additional explanations.'''
         return prompt_content
 
     @classmethod
@@ -83,7 +83,7 @@ Import statements should be placed outside the function. Do not give additional 
         assert hasattr(indi, 'algorithm')
         # template
         temp_func = copy.deepcopy(template_function)
-        temp_func.body = ''
+        # temp_func.body = ''
         # create prmpt content
         prompt_content = f'''{task_prompt}
 I have one algorithm with its code as follows. Algorithm description:
@@ -94,5 +94,5 @@ Please modify the provided algorithm to improve its performance, where you can d
 1. First, describe your new algorithm and main steps in one sentence. The description must be inside within boxed {{}}.
 2. Next, implement the following Python function:
 {str(temp_func)}
-Import statements should be placed outside the function. Do not give additional explanations.'''
+Do not give additional explanations.'''
         return prompt_content

@@ -84,6 +84,8 @@ class MAProfiler(ProfilerBase):
             'function': str(function),
             'score': function.score,
             'program': program,
+            'generation': getattr(function, "generation"),
+            'prompt': getattr(function, "prompt"),
         }
 
         if record_type == 'history':

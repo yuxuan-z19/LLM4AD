@@ -124,13 +124,28 @@ class HillClimb:
             self._profiler.register_function(self._function_to_evolve, program=str(self._template_program))
 
     def _get_prompt(self) -> str:
-        template = TextFunctionProgramConverter.function_to_program(self._best_function_found, self._template_program)
-        template.functions[0].name += '_v0'
-        func_to_be_complete = copy.deepcopy(self._function_to_evolve)
-        func_to_be_complete.name = self._function_to_evolve_name + '_v1'
-        func_to_be_complete.docstring = f'    """Improved version of \'{self._function_to_evolve_name}_v0\'."""'
-        func_to_be_complete.body = ''
-        return '\n'.join([str(template), str(func_to_be_complete)])
+        # * replace with EoH m2 prompt
+        temp_func = copy.deepcopy(self._best_function_found)
+        prompt_content = f'''
+I have one algorithm with its code as follows. Algorithm description:
+{temp_func.algorithm}
+Code:
+{str(temp_func)}
+Please identify the main algorithm parameters and assist me in creating a new algorithm that has a different parameter settings of the score function provided.
+1. First, describe your new algorithm and main steps in one sentence. The description must be inside within boxed {{}}.
+2. Next, implement the following Python function:
+{str(temp_func)}
+Do not give additional explanations.'''
+        return prompt_content
+
+    # def _get_prompt(self) -> str:
+    #     template = TextFunctionProgramConverter.function_to_program(self._best_function_found, self._template_program)
+    #     template.functions[0].name += '_v0'
+    #     func_to_be_complete = copy.deepcopy(self._function_to_evolve)
+    #     func_to_be_complete.name = self._function_to_evolve_name + '_v1'
+    #     func_to_be_complete.docstring = f'    """Improved version of \'{self._function_to_evolve_name}_v0\'."""'
+    #     func_to_be_complete.body = ''
+    #     return '\n'.join([str(template), str(func_to_be_complete)])
 
     # def _sample_evaluate_register(self):
     #     while (self._max_sample_nums is None) or (self._tot_sample_nums < self._max_sample_nums):
@@ -222,6 +237,8 @@ class HillClimb:
                 function.score = score
                 function.evaluate_time = eval_time
                 function.sample_time = draw_sample_time
+                function.generation = self._best_function_found.generation + 1
+                function.prompt = prompt_content
 
                 # update best function found
                 if score is not None and score > self._best_function_found.score:

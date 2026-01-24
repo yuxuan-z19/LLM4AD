@@ -18,7 +18,8 @@ class LHNSSampler:
         thought = self.__class__.trim_thought_from_response(response)
         code = SampleTrimmer.trim_preface_of_function(response)
         function = SampleTrimmer.sample_to_function(code, self._template_program)
-        function = LHNSFunction.convert_function_to_lhnsfunction(function)
+        if function:
+            function = LHNSFunction.convert_function_to_lhnsfunction(function)
         return thought, function
 
     @classmethod

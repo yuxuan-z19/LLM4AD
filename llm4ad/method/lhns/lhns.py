@@ -31,19 +31,22 @@ import random
 import time
 import traceback
 from threading import Thread
-from typing import Optional, Literal
+from typing import Literal, Optional
 
 import numpy as np
 
+from ...base import LLM, Evaluation, SecureEvaluator
+from ...tools.profiler import ProfilerBase
 from .elite_set import EliteSet
-from .func_ruin import LHNSFunctionRuin, LHNSFunction, LHNSProgram, LHNSTextFunctionProgramConverter
+from .func_ruin import (
+    LHNSFunction,
+    LHNSFunctionRuin,
+    LHNSProgram,
+    LHNSTextFunctionProgramConverter,
+)
 from .profiler import LHNSProfiler
 from .prompt import LHNSPrompt
 from .sampler import LHNSSampler
-from ...base import (
-    Evaluation, LLM, SecureEvaluator
-)
-from ...tools.profiler import ProfilerBase
 
 
 class LHNS:
@@ -143,11 +146,11 @@ class LHNS:
         thought, func = self._sampler.get_thought_and_function(prompt)
         sample_time = time.time() - sample_start
         if thought is None or func is None:
-            return
+            return None
         # convert to Program instance
         program = LHNSTextFunctionProgramConverter.function_to_program(func, self._template_program)
         if program is None:
-            return
+            return None
         # evaluate
         score, eval_time = self._evaluation_executor.submit(
             self._evaluator.evaluate_program_record_time,
@@ -158,6 +161,10 @@ class LHNS:
         func.evaluate_time = eval_time
         func.algorithm = thought
         func.sample_time = sample_time
+        
+        func.generation = self._current_function.generation + 1
+        func.prompt = prompt
+
         if self._profiler is not None:
             self._profiler.register_function(func)
             self._tot_sample_nums += 1
@@ -171,7 +178,7 @@ class LHNS:
         else:
             return self._tot_sample_nums < self._max_sample_nums
 
-    def simulated_annealing(self, next_func: LHNSFunction, cooling_rate: float, trans_count: int) -> (bool, int):
+    def simulated_annealing(self, next_func: LHNSFunction, cooling_rate: float, trans_count: int) -> tuple[bool, int]:
         temperature = cooling_rate * (1 - (self._tot_sample_nums - 1) / self._max_sample_nums)
 
         if next_func.score is None or next_func.score == float("-inf"):
@@ -203,6 +210,9 @@ class LHNS:
                 if self._debug_mode:
                     print(f'VNS RR Prompt: {prompt}')
                 new_func = self._sample_evaluate_register(prompt)
+                if not new_func:
+                    continue
+
                 accept, trans_count = self.simulated_annealing(new_func, cooling_rate, trans_count)
 
                 if accept:
@@ -253,6 +263,9 @@ class LHNS:
                         print(f'ILS RR Prompt: {prompt}')
 
                 new_func = self._sample_evaluate_register(prompt)
+                if not new_func:
+                    continue
+
                 accept, trans_count = self.simulated_annealing(new_func, cooling_rate, trans_count)
 
                 if accept:
@@ -298,6 +311,9 @@ class LHNS:
                         print(f'TS RR Prompt: {prompt}')
 
                 new_func = self._sample_evaluate_register(prompt)
+                if not new_func:
+                    continue
+
                 self._current_function.features = LHNSFunctionRuin.find_code_features(self._current_function, new_func)
                 self._elite_set.update(new_func)
                 accept, trans_count = self.simulated_annealing(new_func, cooling_rate, trans_count)

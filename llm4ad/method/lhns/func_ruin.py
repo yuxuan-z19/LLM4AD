@@ -148,7 +148,7 @@ class LHNSTextFunctionProgramConverter(TextFunctionProgramConverter):
 
 class LHNSFunctionRuin:
     @classmethod
-    def delete_function_snips(cls, function: LHNSFunction, cooling_rate: float) -> (LHNSFunction, int):
+    def delete_function_snips(cls, function: LHNSFunction, cooling_rate: float) -> tuple[LHNSFunction, int]:
         """
         Delete lines from the function body.
         Args:
